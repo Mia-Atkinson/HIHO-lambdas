@@ -18,9 +18,13 @@ else
 fi
 
 # Add handler to package
-zip transcription-deployment-package.zip gauth_handler.py
+zip transcription-deployment-package.zip transcription_handler.py
 
 # Deploy to lambda
 aws lambda update-function-code \
-	--function-name HIHO-gAuth \
-	--zip-file fileb://transcription-deployment-package.zip \
+	--function-name HIHO-transcription \
+	--zip-file fileb://transcription-deployment-package.zip
+
+aws lambda update-function-configuration \
+	--function-name HIHO-transcription \
+	--description "S3-put trigger to run AWS Transcribe on an Audio file and save the resulting json to S3"

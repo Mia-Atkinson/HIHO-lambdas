@@ -26,3 +26,7 @@ zip -g gauth-deployment-package.zip gauth_handler.py
 aws lambda update-function-code \
 	--function-name HIHO-gAuth \
 	--zip-file fileb://gauth-deployment-package.zip
+
+# aws lambda update-function-configuration \
+# 	--function-name HIHO-gAuth \
+# 	--description "Refreshes Google Drive API OAuth tokens and stores in AWS Secrets Manager"

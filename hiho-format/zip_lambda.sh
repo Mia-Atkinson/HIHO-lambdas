@@ -3,6 +3,7 @@
 #Set path for AWS CLI
 export PATH=/usr/local/bin:$PATH
 source ~/.bash_profile
+
 FILE=format-deployment-package.zip
 
 if [ "$1" == "update" ] || [ ! -f "$FILE" ]
@@ -25,3 +26,7 @@ zip -g format-deployment-package.zip lambda_function.py
 aws lambda update-function-code \
 	--function-name HIHO-format \
 	--zip-file fileb://format-deployment-package.zip \
+
+# aws lambda update-function-configuration \
+# 	--function-name HIHO-format \
+# 	--description "Takes an AWS Transcribe output json from S3, formats as a human readable script and uploads to Google Drive"

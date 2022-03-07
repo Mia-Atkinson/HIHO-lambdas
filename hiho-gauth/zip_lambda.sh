@@ -4,9 +4,12 @@
 export PATH=/usr/local/bin:$PATH
 source ~/.bash_profile
 
-if [ "$1" == "update" ]
+FILE=gauth-deployment-package.zip
+
+if [ "$1" == "update" ] || [ ! -f "$FILE" ]
 then
 	# Update Zip dependencies
+	echo "Updating Dependencies"
 	pip install --target package google-api-python-client
 	cd package
 	zip -r ../gauth-deployment-package.zip .
@@ -22,4 +25,4 @@ zip -g gauth-deployment-package.zip gauth_handler.py
 # Deploy to lambda
 aws lambda update-function-code \
 	--function-name HIHO-gAuth \
-	--zip-file fileb://gauth-deployment-package.zip \
+	--zip-file fileb://gauth-deployment-package.zip

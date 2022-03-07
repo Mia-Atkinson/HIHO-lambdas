@@ -3,8 +3,9 @@
 #Set path for AWS CLI
 export PATH=/usr/local/bin:$PATH
 source ~/.bash_profile
+FILE=format-deployment-package.zip
 
-if [ "$1" == "update" ]
+if [ "$1" == "update" ] || [ ! -f "$FILE" ]
 then
 	# Update Zip dependencies
 	pip install --target ./package oauth2client==1.5.2

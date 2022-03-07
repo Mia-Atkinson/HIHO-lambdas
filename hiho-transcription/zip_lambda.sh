@@ -3,8 +3,9 @@
 #Set path for AWS CLI
 export PATH=/usr/local/bin:$PATH
 source ~/.bash_profile
+FILE=transcription-deployment-package.zip
 
-if [ "$1" == "update" ]
+if [ "$1" == "update" ] || [ ! -f "$FILE" ]
 then
 	echo "No dependencies to install"
 	# Update Zip dependencies

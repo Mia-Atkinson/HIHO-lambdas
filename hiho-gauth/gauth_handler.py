@@ -9,12 +9,10 @@ from google.auth.transport.requests import Request
 SCOPES = ['https://www.googleapis.com/auth/drive']
 SECRET_ARN = "arn:aws:secretsmanager:us-east-1:161219206179:secret:HIHO/gauth-6xMdBe"
 REGION_NAME = "us-east-1"
-logging.getLogger(__name__).setLevel(logging.INFO)
-logging.basicConfig(format='%(levelname)s: %(message)s')
+logging.getLogger().setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     get_secret()
-
     creds = None
     if os.path.exists('/tmp/credentials.json'):
         creds = Credentials.from_authorized_user_file('/tmp/credentials.json', SCOPES)

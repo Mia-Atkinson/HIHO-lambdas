@@ -15,21 +15,16 @@ from apiclient.http import MediaFileUpload
 
 SCOPES = ['https://www.googleapis.com/auth/drive']
 FOLDER_ID = os.environ['FOLDER_ID']
-INTRO = """\n[Intro Music Plays: Din Daa Daa (Dub), Song by George Kranz]
-Din Daa Daa, Doe Doe Doe
-(Bah!) Din Daa Daa, Doe Doe
-(Bah!) Din Daa Daa, Doe Doe Doe
-(Bah!) Din Daa Daa, Doe Doe"""
-OUTRO = """\n[Outro Music Plays: Din Daa Daa (Dub), Song by George Kranz]
-Din Daa Daa, Doe Doe Doe
+INTRO = "\n[Intro Music Plays: Din Daa Daa (Dub), by George Kranz]"
+OUTRO = "\n[Outro Music Plays: Din Daa Daa (Dub), by George Kranz]"
+LYRICS = """\nDin Daa Daa, Doe Doe Doe
 (Bah!) Din Daa Daa, Doe Doe
 (Bah!) Din Daa Daa, Doe Doe Doe
 (Bah!) Din Daa Daa, Doe Doe"""
 
 s3 = boto3.client('s3')
 s3_resource = boto3.resource('s3')
-logging.getLogger(__name__).setLevel(logging.INFO)
-logging.basicConfig(format='%(levelname)s: %(message)s')
+logging.getLogger().setLevel(logging.INFO)
 
 def lambda_handler(event, context):
 	# Get the object from the event and show its content type
@@ -114,8 +109,9 @@ def format_file(input_json, job_name):
 		lines.append({'speaker':speaker, 'line':line,'time':time})
 		sorted_lines = sorted(lines,key=lambda k: float(k['time']))
 		w.write(job_name)
-		w.write("\n\n")
+		w.write("(centered/bold/13)\n\n")
 		w.write(INTRO)
+		w.write(LYRICS)
 		w.write("\n\n\n")
 		for line_data in sorted_lines[1:]:
 			line=line_data.get('speaker') + ': ' + line_data.get('line')
@@ -123,6 +119,7 @@ def format_file(input_json, job_name):
 				line=line.replace(word,' ')
 			w.write(line + '\n\n')
 		w.write(OUTRO)
+		w.write(LYRICS)
 	w.close()
 
 def upload_file(job_name, service):

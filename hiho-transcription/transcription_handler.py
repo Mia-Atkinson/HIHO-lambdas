@@ -3,7 +3,6 @@ import urllib.parse
 import boto3
 import logging
 import sys
-import time
 from botocore.exceptions import ClientError
 import requests
 import os
@@ -11,11 +10,9 @@ import os
 s3 = boto3.client('s3')
 s3_resource = boto3.resource('s3')
 transcribe_client = boto3.client('transcribe')
-logging.getLogger(__name__).setLevel(logging.INFO)
-logging.basicConfig(format='%(levelname)s: %(message)s')
+logging.getLogger().setLevel(logging.INFO)
 
 def lambda_handler(event, context):
-    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
     # Get the object from the event and show its content type
     bucket = event['Records'][0]['s3']['bucket']['name']
@@ -26,6 +23,10 @@ def lambda_handler(event, context):
         logging.info("CONTENT TYPE: " + response['ContentType'])
         if content_type == "video/mp4" or content_type == "audio/x-m4a":
             content_type = "mp4"
+        elif content_type=="audio/mp3":
+            content_type = "mp3"
+        else:
+            raise Exception("S3 Audio File: Invalid format")
     except Exception as e:
         logging.error('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(key, bucket))
         raise e
@@ -61,7 +62,7 @@ def start_job(
     """
     try:
         job_args = {
-            'TranscriptionJobName': f'{job_name}-{time.time()}',
+            'TranscriptionJobName': f'{job_name}',
             'Media': {'MediaFileUri': media_uri},
             'MediaFormat': media_format,
             'LanguageCode': language_code,

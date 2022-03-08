@@ -11,6 +11,7 @@ import os
 s3 = boto3.client('s3')
 s3_resource = boto3.resource('s3')
 transcribe_client = boto3.client('transcribe')
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 def lambda_handler(event, context):
@@ -22,28 +23,25 @@ def lambda_handler(event, context):
     try:
         response = s3.get_object(Bucket=bucket, Key=key)
         content_type = response['ContentType']
-        print("CONTENT TYPE: " + response['ContentType'])
+        logger.info("CONTENT TYPE: " + response['ContentType'])
         if content_type == "video/mp4":
             content_type = "mp4"
     except Exception as e:
-        print(e)
-        print('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(key, bucket))
+        logger.error('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(key, bucket))
         raise e
     file_name = os.path.basename(key)
     job_name = os.path.splitext(file_name)[0]
-    print(f"key={job_name}")
-    #job_name = f'{filename}-{time.time_ns()}'
-    print(f"Starting transcription job {job_name}.")
+    logger.info(f"key={job_name}")
+    logger.info(f"Starting transcription job {job_name}.")
     start_job(
         job_name, \
         f's3://{bucket}/{key}', \
         content_type, \
         'en-US', \
         transcribe_client)
-        
+
 def start_job(
-        job_name, media_uri, media_format, language_code, transcribe_client,
-        vocabulary_name=None):
+        job_name, media_uri, media_format, language_code, transcribe_client):
     """
     Starts a transcription job. This function returns as soon as the job is started.
     To get the current status of the job, call get_transcription_job. The job is
@@ -61,7 +59,6 @@ def start_job(
                             the audio file.
     :return: Data about the job.
     """
-    print(job_name)
     try:
         job_args = {
             'TranscriptionJobName': f'{job_name}-{time.time()}',
@@ -71,18 +68,18 @@ def start_job(
             'OutputBucketName': 'hiho-transcription',
             'OutputKey': f'output/{job_name}.json'
             }
-        if vocabulary_name is not None:
-            job_args['Settings'] = {
-                'VocabularyName': vocabulary_name,
-                "ShowSpeakerLabels": True,
-                "MaxSpeakerLabels": 6
-            }
+
+        job_args['Settings'] = {
+            'VocabularyName': "Gymnastics",
+            "ShowSpeakerLabels": True,
+            "MaxSpeakerLabels": 6
+        }
         response = transcribe_client.start_transcription_job(**job_args)
         job = response['TranscriptionJob']
         logger.info("Started transcription job %s.", job_name)
-    except ClientError:
-        logger.exception("Couldn't start transcription job %s.", job_name)
-        raise
+    except ClientError as e:
+        logger.error("Couldn't start transcription job %s.", job_name)
+        raise e
     else:
         return job
 

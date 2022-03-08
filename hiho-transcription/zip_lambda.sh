@@ -25,6 +25,6 @@ aws lambda update-function-code \
 	--function-name HIHO-transcription \
 	--zip-file fileb://transcription-deployment-package.zip
 
-aws lambda update-function-configuration \
-	--function-name HIHO-transcription \
-	--description "S3-put trigger to run AWS Transcribe on an Audio file and save the resulting json to S3"
+# aws lambda update-function-configuration \
+# 	--function-name HIHO-transcription \
+# 	--description "S3-put trigger to run AWS Transcribe on an Audio file and save the resulting json to S3"

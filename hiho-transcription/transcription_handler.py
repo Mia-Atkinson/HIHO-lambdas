@@ -11,8 +11,8 @@ import os
 s3 = boto3.client('s3')
 s3_resource = boto3.resource('s3')
 transcribe_client = boto3.client('transcribe')
-logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
-logger = logging.getLogger(__name__)
+logging.getLogger(__name__).setLevel(logging.INFO)
+logging.basicConfig(format='%(levelname)s: %(message)s')
 
 def lambda_handler(event, context):
     logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -23,16 +23,16 @@ def lambda_handler(event, context):
     try:
         response = s3.get_object(Bucket=bucket, Key=key)
         content_type = response['ContentType']
-        logger.info("CONTENT TYPE: " + response['ContentType'])
-        if content_type == "video/mp4":
+        logging.info("CONTENT TYPE: " + response['ContentType'])
+        if content_type == "video/mp4" or content_type == "audio/x-m4a":
             content_type = "mp4"
     except Exception as e:
-        logger.error('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(key, bucket))
+        logging.error('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(key, bucket))
         raise e
     file_name = os.path.basename(key)
     job_name = os.path.splitext(file_name)[0]
-    logger.info(f"key={job_name}")
-    logger.info(f"Starting transcription job {job_name}.")
+    logging.info(f"key={job_name}")
+    logging.info(f"Starting transcription job {job_name}.")
     start_job(
         job_name, \
         f's3://{bucket}/{key}', \
@@ -76,9 +76,9 @@ def start_job(
         }
         response = transcribe_client.start_transcription_job(**job_args)
         job = response['TranscriptionJob']
-        logger.info("Started transcription job %s.", job_name)
+        logging.info("Started transcription job %s.", job_name)
     except ClientError as e:
-        logger.error("Couldn't start transcription job %s.", job_name)
+        logging.error("Couldn't start transcription job %s.", job_name)
         raise e
     else:
         return job
@@ -95,9 +95,9 @@ def get_job(job_name, transcribe_client):
         response = transcribe_client.get_transcription_job(
             TranscriptionJobName=job_name)
         job = response['TranscriptionJob']
-        logger.info("Got job %s.", job['TranscriptionJobName'])
+        logging.info("Got job %s.", job['TranscriptionJobName'])
     except ClientError:
-        logger.exception("Couldn't get job %s.", job_name)
+        logging.exception("Couldn't get job %s.", job_name)
         raise
     else:
         return job

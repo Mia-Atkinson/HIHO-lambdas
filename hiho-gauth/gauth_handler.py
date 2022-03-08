@@ -7,10 +7,10 @@ from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 
 SCOPES = ['https://www.googleapis.com/auth/drive']
-logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 SECRET_ARN = "arn:aws:secretsmanager:us-east-1:161219206179:secret:HIHO/gauth-6xMdBe"
 REGION_NAME = "us-east-1"
-logger = logging.getLogger(__name__)
+logging.getLogger(__name__).setLevel(logging.INFO)
+logging.basicConfig(format='%(levelname)s: %(message)s')
 
 def lambda_handler(event, context):
     get_secret()
@@ -20,11 +20,11 @@ def lambda_handler(event, context):
         creds = Credentials.from_authorized_user_file('/tmp/credentials.json', SCOPES)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            logger.info("Refreshing Token")
+            logging.info("Refreshing Token")
             try:
                 creds.refresh(Request())
             except Exception as e:
-                logger.error("No valid tokens available")
+                logging.error("No valid tokens available")
                 raise e
         write_secret(creds)
 

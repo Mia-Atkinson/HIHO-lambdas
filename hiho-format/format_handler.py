@@ -54,7 +54,8 @@ def lambda_handler(event, context):
 		logging.error(f'An error occurred: {error}')
 
 	# Format File
-	logging.info("Filename: ", job_name)
+	logging.info("File name: {}".format(job_name))
+
 	format_file(data_dict, job_name)
 
 	upload_file(job_name, service)
@@ -113,11 +114,22 @@ def format_file(input_json, job_name):
 		w.write(INTRO)
 		w.write(LYRICS)
 		w.write("\n\n\n")
+		previous_speaker="Advertiser"
 		for line_data in sorted_lines[1:]:
-			line=line_data.get('speaker') + ': ' + line_data.get('line')
+			# line=line_data.get('speaker') + ': ' + line_data.get('line')
+			speaker = line_data.get('speaker')
+			line_content = line_data.get('line')
 			for word in replace_words:
-				line=line.replace(word,' ')
+				line_content=line_content.replace(word,' ')
+			line_content=line_content.replace('jim','gym')
+			line_content=line_content.replace('U. C. L. A.','UCLA')
+			# Don't repeat speaker name if 2 lines are the same speaker
+			if speaker == previous_speaker:
+				line = line_data.get('line')
+			else:
+				line=line_data.get('speaker') + ': ' + line_data.get('line')
 			w.write(line + '\n\n')
+			previous_speaker = speaker
 		w.write(OUTRO)
 		w.write(LYRICS)
 	w.close()

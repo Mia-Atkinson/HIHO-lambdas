@@ -21,6 +21,7 @@ LYRICS = """\nDin Daa Daa, Doe Doe Doe
 (Bah!) Din Daa Daa, Doe Doe
 (Bah!) Din Daa Daa, Doe Doe Doe
 (Bah!) Din Daa Daa, Doe Doe"""
+REPLACE_WORDS=[" Uh ", " uh ", " Um ", " um "," Like "," um, "," uh, "]
 
 s3 = boto3.client('s3')
 s3_resource = boto3.resource('s3')
@@ -91,7 +92,7 @@ def format_file(input_json, job_name):
 		time=0
 		speaker='null'
 		i=0
-		replace_words=[" Uh ", " uh ", " Um ", " um "," like "," Like "," um, "," uh, "]
+
 		for item in items:
 			i=i+1
 			content = item['alternatives'][0]['content']
@@ -109,30 +110,44 @@ def format_file(input_json, job_name):
 				line = line + ' ' + content
 		lines.append({'speaker':speaker, 'line':line,'time':time})
 		sorted_lines = sorted(lines,key=lambda k: float(k['time']))
+		# Print header
 		w.write(job_name)
 		w.write("(centered/bold/13)\n\n")
 		w.write(INTRO)
 		w.write(LYRICS)
 		w.write("\n\n\n")
+
 		previous_speaker="Advertiser"
 		for line_data in sorted_lines[1:]:
-			# line=line_data.get('speaker') + ': ' + line_data.get('line')
 			speaker = line_data.get('speaker')
 			line_content = line_data.get('line')
-			for word in replace_words:
-				line_content=line_content.replace(word,' ')
-			line_content=line_content.replace('jim','gym')
-			line_content=line_content.replace('U. C. L. A.','UCLA')
-			# Don't repeat speaker name if 2 lines are the same speaker
+			line = word_cleanup(line_content)
+			# Don't reprint {speaker:} if speaker repeated
 			if speaker == previous_speaker:
 				line = line_data.get('line')
 			else:
 				line=line_data.get('speaker') + ': ' + line_data.get('line')
 			w.write(line + '\n\n')
 			previous_speaker = speaker
+
+		# Print footer
 		w.write(OUTRO)
 		w.write(LYRICS)
 	w.close()
+
+def word_cleanup(line_content):
+	clean_line = line_content
+	#TODO: Fix 'feels like'
+	if "feel like" in clean_line:
+		logging.info("Leaving 'feel like' in line")
+	else:
+		clean_line.replace('like',' ')
+	for word in REPLACE_WORDS:
+		clean_line=clean_line.replace(word,' ')
+	clean_line=clean_line.replace('jim','gym')
+	clean_line=clean_line.replace('U. C. L. A.','UCLA')
+	clean_line=clean_line.replace('meat','meat')
+	return clean_line
 
 def upload_file(job_name, service):
 	logging.info("Uploading {} to Google Drive".format(job_name))

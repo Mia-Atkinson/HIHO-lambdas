@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 def main():
     import sys
-    line = "to change and we're gonna quit like I'm I'm sorry."
+    line = "to change and we're gonna quit like I'm I'm sorry So "
     allowable_phrase = ["feel like", "felt like",
                         "was like", " it's like", " it like",
                         "I'm like", "you're like", "You're like",
@@ -40,9 +40,11 @@ def main():
         if final[0] == " " and len(final)>1:
             final = final[1:]
         final = final[0].capitalize() + final[1:]
+
+    if " so" in final[-4:] or " So" in final[-4:]:
+        final = final[:-4] + final[-4:].replace("so","").replace("So","")
     print("\nFinal Result:")
     print(final)
-
 
 if __name__ == '__main__':
     main()

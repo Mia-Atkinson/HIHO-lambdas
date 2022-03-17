@@ -31,7 +31,7 @@ def lambda_handler(event, context):
 	try:
 		drive_service = build('drive', 'v3', credentials=creds)
 	except HttpError as error:
-		logging.error(f'An error occurred: {error}')
+		logging.error("An error occurred: {}".format(error))
 
 	get_csv_from_drive(drive_service)
 	upload_to_s3()

@@ -32,8 +32,7 @@ def lambda_handler(event, context):
         raise e
     file_name = os.path.basename(key)
     job_name = os.path.splitext(file_name)[0]
-    logging.info(f"key={job_name}")
-    logging.info(f"Starting transcription job {job_name}.")
+    logging.info("Starting transcription job {}.".format(job_name))
     start_job(
         job_name, \
         f's3://{bucket}/{key}', \
@@ -77,9 +76,9 @@ def start_job(
         }
         response = transcribe_client.start_transcription_job(**job_args)
         job = response['TranscriptionJob']
-        logging.info("Started transcription job %s.", job_name)
+        logging.info("Started transcription job {}",.format(job_name))
     except ClientError as e:
-        logging.error("Couldn't start transcription job %s.", job_name)
+        logging.error("Couldn't start transcription job {}".format(job_name))
         raise e
     else:
         return job
@@ -96,9 +95,9 @@ def get_job(job_name, transcribe_client):
         response = transcribe_client.get_transcription_job(
             TranscriptionJobName=job_name)
         job = response['TranscriptionJob']
-        logging.info("Got job %s.", job['TranscriptionJobName'])
+        logging.info("Got job {}".format(job['TranscriptionJobName']))
     except ClientError:
-        logging.exception("Couldn't get job %s.", job_name)
+        logging.exception("Couldn't get job {}".format(job_name))
         raise
     else:
         return job

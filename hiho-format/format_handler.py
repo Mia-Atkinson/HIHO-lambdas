@@ -30,7 +30,7 @@ def lambda_handler(event, context):
 	# Get the object from the event and show its content type
 	bucket = event['Records'][0]['s3']['bucket']['name']
 	key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'], encoding='utf-8')
-	logging.info(f'Key: {key}')
+	logging.info("Key: {}".format(key))
 	try:
 		response = s3.get_object(Bucket=bucket, Key=key)
 		data = response["Body"].read().decode('utf-8')
@@ -51,7 +51,7 @@ def lambda_handler(event, context):
 	try:
 		service = build('drive', 'v3', credentials=creds)
 	except HttpError as error:
-		logging.error(f'An error occurred: {error}')
+		logging.error("An error occured: {}".format(error))
 
 	format_file(data_dict, job_name)
 
@@ -219,4 +219,8 @@ def word_cleanup(line):
 		if final[0] == " " and len(final)>1:
 			final = final[1:]
 		final = final[0].capitalize() + final[1:]
+
+	# If the last word of a line is "so", drop it
+	if " so" in final[-4:] or " So" in final[-4:]:
+		final = final[:-4] + final[-4:].replace(" so","").replace(" So","")
 	return final

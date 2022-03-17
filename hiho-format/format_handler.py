@@ -21,7 +21,6 @@ LYRICS = """\nDin Daa Daa, Doe Doe Doe
 (Bah!) Din Daa Daa, Doe Doe
 (Bah!) Din Daa Daa, Doe Doe Doe
 (Bah!) Din Daa Daa, Doe Doe"""
-REPLACE_WORDS=[" Uh ", " uh ", " Um ", " um "," Like "," um, "," uh, "]
 
 s3 = boto3.client('s3')
 s3_resource = boto3.resource('s3')
@@ -53,9 +52,6 @@ def lambda_handler(event, context):
 		service = build('drive', 'v3', credentials=creds)
 	except HttpError as error:
 		logging.error(f'An error occurred: {error}')
-
-	# Format File
-	logging.info("File name: {}".format(job_name))
 
 	format_file(data_dict, job_name)
 
@@ -124,9 +120,10 @@ def format_file(input_json, job_name):
 			line = word_cleanup(line_content)
 			# Don't reprint {speaker:} if speaker repeated
 			if speaker == previous_speaker:
-				line = line_data.get('line')
+				logging.info("Combining speakers")
+				line = '$$$$$' + line
 			else:
-				line=line_data.get('speaker') + ': ' + line_data.get('line')
+				line=line_data.get('speaker') + ': ' + line
 			w.write(line + '\n\n')
 			previous_speaker = speaker
 
@@ -134,20 +131,6 @@ def format_file(input_json, job_name):
 		w.write(OUTRO)
 		w.write(LYRICS)
 	w.close()
-
-def word_cleanup(line_content):
-	clean_line = line_content
-	#TODO: Fix 'feels like'
-	if "feel like" in clean_line:
-		logging.info("Leaving 'feel like' in line")
-	else:
-		clean_line.replace('like',' ')
-	for word in REPLACE_WORDS:
-		clean_line=clean_line.replace(word,' ')
-	clean_line=clean_line.replace('jim','gym')
-	clean_line=clean_line.replace('U. C. L. A.','UCLA')
-	clean_line=clean_line.replace('meat','meat')
-	return clean_line
 
 def upload_file(job_name, service):
 	logging.info("Uploading {} to Google Drive".format(job_name))
@@ -195,3 +178,45 @@ def get_secret():
 			f = open('/tmp/credentials.json', "w")
 			f.write(secret)
 			f.close()
+
+def word_cleanup(line):
+	line = line.replace('jim','gym')
+	line = line.replace('U. C. L. A','UCLA')
+	line = line.replace('meat','meet')
+	line = line.replace('Pride me','pride meet')
+
+	allowable_phrase = ["feel like", "felt like",
+						"was like", " it's like", " it like",
+						"I'm like", "you're like", "You're like",
+						"He's like", "he's like",
+						"She's like", "she's like"]
+
+	remove_words = [" Uh ", " uh ", " Uh, ", " uh, ",
+					" Um ", " um ", " Um, ", " um, "]
+
+	for word in remove_words:
+		if word in line:
+			if "," in word:
+				line = line.replace(word, ", ")
+			else:
+				line = line.replace(word, word[-1])
+
+	delim = "like"
+	split = [phrase+delim for phrase in line.split(delim) if phrase]
+	if line.split(delim)[-1] != '':
+		split[-1] = split[-1].replace('like','')
+
+	result = []
+	for phrase in split:
+		check_allowed = [a for a in allowable_phrase if a in phrase]
+		if len(check_allowed) == 0:
+			phrase = phrase.replace(" like","")
+		result += phrase
+
+	separator = ""
+	final = separator.join(result)
+	if final:
+		if final[0] == " " and len(final)>1:
+			final = final[1:]
+		final = final[0].capitalize() + final[1:]
+	return final
